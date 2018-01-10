@@ -340,10 +340,10 @@ func TestSpendJournalSerialization(t *testing.T) {
 					version:     1,
 					isCoinBase:  false,
 					blockHeight: 100024,
-					sparseOutputs: map[uint32]*utxoOutput{
+					SparseOutputs: map[uint32]*UtxoOutput{
 						1: {
-							amount:   34405000000,
-							pkScript: hexToBytes("76a9142084541c3931677527a7eafe56fd90207c344eb088ac"),
+							Amount:   34405000000,
+							PkScript: hexToBytes("76a9142084541c3931677527a7eafe56fd90207c344eb088ac"),
 						},
 					},
 				},
@@ -393,10 +393,10 @@ func TestSpendJournalSerialization(t *testing.T) {
 					version:     1,
 					isCoinBase:  false,
 					blockHeight: 100000,
-					sparseOutputs: map[uint32]*utxoOutput{
+					SparseOutputs: map[uint32]*UtxoOutput{
 						0: {
-							amount:   165712179,
-							pkScript: hexToBytes("51"),
+							Amount:   165712179,
+							PkScript: hexToBytes("51"),
 						},
 					},
 				},
@@ -528,10 +528,10 @@ func TestUtxoSerialization(t *testing.T) {
 				version:     1,
 				isCoinBase:  true,
 				blockHeight: 1,
-				sparseOutputs: map[uint32]*utxoOutput{
+				SparseOutputs: map[uint32]*UtxoOutput{
 					0: {
-						amount:   5000000000,
-						pkScript: hexToBytes("410496b538e853519c726a2c91e61ec11600ae1390813a627c66fb8be7947be63c52da7589379515d4e0a604f8141781e62294721166bf621e73a82cbf2342c858eeac"),
+						Amount:   5000000000,
+						PkScript: hexToBytes("410496b538e853519c726a2c91e61ec11600ae1390813a627c66fb8be7947be63c52da7589379515d4e0a604f8141781e62294721166bf621e73a82cbf2342c858eeac"),
 					},
 				},
 			},
@@ -545,10 +545,10 @@ func TestUtxoSerialization(t *testing.T) {
 				version:     1,
 				isCoinBase:  false,
 				blockHeight: 100001,
-				sparseOutputs: map[uint32]*utxoOutput{
+				SparseOutputs: map[uint32]*UtxoOutput{
 					1: {
-						amount:   1000000,
-						pkScript: hexToBytes("76a914ee8bd501094a7d5ca318da2506de35e1cb025ddc88ac"),
+						Amount:   1000000,
+						PkScript: hexToBytes("76a914ee8bd501094a7d5ca318da2506de35e1cb025ddc88ac"),
 					},
 				},
 			},
@@ -562,10 +562,10 @@ func TestUtxoSerialization(t *testing.T) {
 				version:     1,
 				isCoinBase:  true,
 				blockHeight: 99004,
-				sparseOutputs: map[uint32]*utxoOutput{
+				SparseOutputs: map[uint32]*UtxoOutput{
 					2: {
-						amount:   100937281,
-						pkScript: hexToBytes("76a914da33f77cee27c2a975ed5124d7e4f7f97513510188ac"),
+						Amount:   100937281,
+						PkScript: hexToBytes("76a914da33f77cee27c2a975ed5124d7e4f7f97513510188ac"),
 					},
 				},
 			},
@@ -579,14 +579,14 @@ func TestUtxoSerialization(t *testing.T) {
 				version:     1,
 				isCoinBase:  false,
 				blockHeight: 113931,
-				sparseOutputs: map[uint32]*utxoOutput{
+				SparseOutputs: map[uint32]*UtxoOutput{
 					0: {
-						amount:   20000000,
-						pkScript: hexToBytes("76a914e2ccd6ec7c6e2e581349c77e067385fa8236bf8a88ac"),
+						Amount:   20000000,
+						PkScript: hexToBytes("76a914e2ccd6ec7c6e2e581349c77e067385fa8236bf8a88ac"),
 					},
 					2: {
-						amount:   15000000,
-						pkScript: hexToBytes("76a914b8025be1b3efc63b0ad48e7f9f10e87544528d5888ac"),
+						Amount:   15000000,
+						PkScript: hexToBytes("76a914b8025be1b3efc63b0ad48e7f9f10e87544528d5888ac"),
 					},
 				},
 			},
@@ -600,19 +600,19 @@ func TestUtxoSerialization(t *testing.T) {
 				version:     1,
 				isCoinBase:  false,
 				blockHeight: 113931,
-				sparseOutputs: map[uint32]*utxoOutput{
+				SparseOutputs: map[uint32]*UtxoOutput{
 					0: {
-						amount:   20000000,
-						pkScript: hexToBytes("76a914e2ccd6ec7c6e2e581349c77e067385fa8236bf8a88ac"),
+						Amount:   20000000,
+						PkScript: hexToBytes("76a914e2ccd6ec7c6e2e581349c77e067385fa8236bf8a88ac"),
 					},
 					1: { // This won't be serialized.
-						spent:    true,
-						amount:   1000000,
-						pkScript: hexToBytes("76a914e43031c3e46f20bf1ccee9553ce815de5a48467588ac"),
+						Spent:    true,
+						Amount:   1000000,
+						PkScript: hexToBytes("76a914e43031c3e46f20bf1ccee9553ce815de5a48467588ac"),
 					},
 					2: {
-						amount:   15000000,
-						pkScript: hexToBytes("76a914b8025be1b3efc63b0ad48e7f9f10e87544528d5888ac"),
+						Amount:   15000000,
+						PkScript: hexToBytes("76a914b8025be1b3efc63b0ad48e7f9f10e87544528d5888ac"),
 					},
 				},
 			},
@@ -626,17 +626,17 @@ func TestUtxoSerialization(t *testing.T) {
 				version:     1,
 				isCoinBase:  false,
 				blockHeight: 113931,
-				sparseOutputs: map[uint32]*utxoOutput{
+				SparseOutputs: map[uint32]*UtxoOutput{
 					0: {
-						amount:   20000000,
-						pkScript: hexToBytes("76a914e2ccd6ec7c6e2e581349c77e067385fa8236bf8a88ac"),
+						Amount:   20000000,
+						PkScript: hexToBytes("76a914e2ccd6ec7c6e2e581349c77e067385fa8236bf8a88ac"),
 					},
 					2: {
 						// Uncompressed Amount: 15000000
 						// Uncompressed PkScript: 76a914b8025be1b3efc63b0ad48e7f9f10e87544528d5888ac
 						compressed: true,
-						amount:     137,
-						pkScript:   hexToBytes("00b8025be1b3efc63b0ad48e7f9f10e87544528d58"),
+						Amount:     137,
+						PkScript:   hexToBytes("00b8025be1b3efc63b0ad48e7f9f10e87544528d58"),
 					},
 				},
 			},
@@ -650,17 +650,17 @@ func TestUtxoSerialization(t *testing.T) {
 				version:     1,
 				isCoinBase:  false,
 				blockHeight: 113931,
-				sparseOutputs: map[uint32]*utxoOutput{
+				SparseOutputs: map[uint32]*UtxoOutput{
 					0: {
-						amount:   20000000,
-						pkScript: hexToBytes("76a914e2ccd6ec7c6e2e581349c77e067385fa8236bf8a88ac"),
+						Amount:   20000000,
+						PkScript: hexToBytes("76a914e2ccd6ec7c6e2e581349c77e067385fa8236bf8a88ac"),
 					},
 					2: {
 						// Uncompressed Amount: 15000000
 						// Uncompressed PkScript: 76a914b8025be1b3efc63b0ad48e7f9f10e87544528d5888ac
 						compressed: true,
-						amount:     137,
-						pkScript:   hexToBytes("00b8025be1b3efc63b0ad48e7f9f10e87544528d58"),
+						Amount:     137,
+						PkScript:   hexToBytes("00b8025be1b3efc63b0ad48e7f9f10e87544528d58"),
 					},
 				},
 			},
@@ -674,11 +674,11 @@ func TestUtxoSerialization(t *testing.T) {
 				version:     1,
 				isCoinBase:  true,
 				blockHeight: 1,
-				sparseOutputs: map[uint32]*utxoOutput{
+				SparseOutputs: map[uint32]*UtxoOutput{
 					0: {
-						spent:    true,
-						amount:   5000000000,
-						pkScript: hexToBytes("410496b538e853519c726a2c91e61ec11600ae1390813a627c66fb8be7947be63c52da7589379515d4e0a604f8141781e62294721166bf621e73a82cbf2342c858eeac"),
+						Spent:    true,
+						Amount:   5000000000,
+						PkScript: hexToBytes("410496b538e853519c726a2c91e61ec11600ae1390813a627c66fb8be7947be63c52da7589379515d4e0a604f8141781e62294721166bf621e73a82cbf2342c858eeac"),
 					},
 				},
 			},
@@ -692,11 +692,11 @@ func TestUtxoSerialization(t *testing.T) {
 				version:     1,
 				isCoinBase:  false,
 				blockHeight: 338156,
-				sparseOutputs: map[uint32]*utxoOutput{
+				SparseOutputs: map[uint32]*UtxoOutput{
 					22: {
-						spent:    false,
-						amount:   366875659,
-						pkScript: hexToBytes("a9141dd46a006572d820e448e12d2bbb38640bc718e687"),
+						Spent:    false,
+						Amount:   366875659,
+						PkScript: hexToBytes("a9141dd46a006572d820e448e12d2bbb38640bc718e687"),
 					},
 				},
 			},
@@ -766,7 +766,7 @@ func TestUtxoSerialization(t *testing.T) {
 		// spentness of the output in the deserialized entry and the
 		// deserialized entry does not contain any additional utxos.
 		var numUnspent int
-		for outputIndex := range test.entry.sparseOutputs {
+		for outputIndex := range test.entry.SparseOutputs {
 			gotSpent := utxoEntry.IsOutputSpent(outputIndex)
 			wantSpent := test.entry.IsOutputSpent(outputIndex)
 			if !wantSpent {
@@ -781,17 +781,17 @@ func TestUtxoSerialization(t *testing.T) {
 
 			}
 		}
-		if len(utxoEntry.sparseOutputs) != numUnspent {
+		if len(utxoEntry.SparseOutputs) != numUnspent {
 			t.Errorf("deserializeUtxoEntry #%d (%s): mismatched "+
 				"number of unspent outputs: got %d, want %d", i,
-				test.name, len(utxoEntry.sparseOutputs),
+				test.name, len(utxoEntry.SparseOutputs),
 				numUnspent)
 			continue
 		}
 
 		// Ensure all of the amounts and scripts of the utxos in the
 		// deserialized entry match the ones in the test entry.
-		for outputIndex := range utxoEntry.sparseOutputs {
+		for outputIndex := range utxoEntry.SparseOutputs {
 			gotAmount := utxoEntry.AmountByIndex(outputIndex)
 			wantAmount := test.entry.AmountByIndex(outputIndex)
 			if gotAmount != wantAmount {

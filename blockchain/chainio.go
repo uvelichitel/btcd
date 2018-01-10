@@ -610,8 +610,8 @@ func serializeUtxoEntry(entry *UtxoEntry) ([]byte, error) {
 	}
 
 	// Determine the output order by sorting the sparse output index keys.
-	outputOrder := make([]int, 0, len(entry.sparseOutputs))
-	for outputIndex := range entry.sparseOutputs {
+	outputOrder := make([]int, 0, len(entry.SparseOutputs))
+	for outputIndex := range entry.SparseOutputs {
 		outputOrder = append(outputOrder, int(outputIndex))
 	}
 	sort.Ints(outputOrder)
@@ -629,11 +629,11 @@ func serializeUtxoEntry(entry *UtxoEntry) ([]byte, error) {
 		serializeSizeVLQ(uint64(entry.blockHeight)) +
 		serializeSizeVLQ(headerCode) + numBitmapBytes
 	for _, outputIndex := range outputOrder {
-		out := entry.sparseOutputs[uint32(outputIndex)]
-		if out.spent {
+		out := entry.SparseOutputs[uint32(outputIndex)]
+		if out.Spent {
 			continue
 		}
-		size += compressedTxOutSize(uint64(out.amount), out.pkScript,
+		size += compressedTxOutSize(uint64(out.Amount), out.PkScript,
 			entry.version, out.compressed)
 	}
 
@@ -661,13 +661,13 @@ func serializeUtxoEntry(entry *UtxoEntry) ([]byte, error) {
 	// Serialize the compressed unspent transaction outputs.  Outputs that
 	// are already compressed are serialized without modifications.
 	for _, outputIndex := range outputOrder {
-		out := entry.sparseOutputs[uint32(outputIndex)]
-		if out.spent {
+		out := entry.SparseOutputs[uint32(outputIndex)]
+		if out.Spent {
 			continue
 		}
 
 		offset += putCompressedTxOut(serialized[offset:],
-			uint64(out.amount), out.pkScript, entry.version,
+			uint64(out.Amount), out.PkScript, entry.version,
 			out.compressed)
 	}
 
@@ -767,11 +767,116 @@ func deserializeUtxoEntry(serialized []byte) (*UtxoEntry, error) {
 		}
 		offset += bytesRead
 
-		entry.sparseOutputs[outputIndex] = &utxoOutput{
-			spent:      false,
+		entry.SparseOutputs[outputIndex] = &UtxoOutput{
+			Spent:      false,
 			compressed: true,
-			pkScript:   compScript,
-			amount:     int64(compAmount),
+			PkScript:   compScript,
+			Amount:     int64(compAmount),
+		}
+	}
+
+	return entry, nil
+}
+
+//custom
+// deserializeUtxoEntry decodes a utxo entry from the passed serialized byte
+// slice into a new UtxoEntry using a format that is suitable for long-term
+// storage.  The format is described in detail above.
+func DeserializeUtxoEntry(serialized []byte) (*UtxoEntry, error) {
+	// Deserialize the version.
+	version, bytesRead := deserializeVLQ(serialized)
+	offset := bytesRead
+	if offset >= len(serialized) {
+		return nil, errDeserialize("unexpected end of data after version")
+	}
+
+	// Deserialize the block height.
+	blockHeight, bytesRead := deserializeVLQ(serialized[offset:])
+	offset += bytesRead
+	if offset >= len(serialized) {
+		return nil, errDeserialize("unexpected end of data after height")
+	}
+
+	// Deserialize the header code.
+	code, bytesRead := deserializeVLQ(serialized[offset:])
+	offset += bytesRead
+	if offset >= len(serialized) {
+		return nil, errDeserialize("unexpected end of data after header")
+	}
+
+	// Decode the header code.
+	//
+	// Bit 0 indicates whether the containing transaction is a coinbase.
+	// Bit 1 indicates output 0 is unspent.
+	// Bit 2 indicates output 1 is unspent.
+	// Bits 3-x encodes the number of non-zero unspentness bitmap bytes that
+	// follow.  When both output 0 and 1 are spent, it encodes N-1.
+	isCoinBase := code&0x01 != 0
+	output0Unspent := code&0x02 != 0
+	output1Unspent := code&0x04 != 0
+	numBitmapBytes := code >> 3
+	if !output0Unspent && !output1Unspent {
+		numBitmapBytes++
+	}
+
+	// Ensure there are enough bytes left to deserialize the unspentness
+	// bitmap.
+	if uint64(len(serialized[offset:])) < numBitmapBytes {
+		return nil, errDeserialize("unexpected end of data for " +
+			"unspentness bitmap")
+	}
+
+	// Create a new utxo entry with the details deserialized above to house
+	// all of the utxos.
+	entry := newUtxoEntry(int32(version), isCoinBase, int32(blockHeight))
+
+	// Add sparse output for unspent outputs 0 and 1 as needed based on the
+	// details provided by the header code.
+	var outputIndexes []uint32
+	if output0Unspent {
+		outputIndexes = append(outputIndexes, 0)
+	}
+	if output1Unspent {
+		outputIndexes = append(outputIndexes, 1)
+	}
+
+	// Decode the unspentness bitmap adding a sparse output for each unspent
+	// output.
+	for i := uint32(0); i < uint32(numBitmapBytes); i++ {
+		unspentBits := serialized[offset]
+		for j := uint32(0); j < 8; j++ {
+			if unspentBits&0x01 != 0 {
+				// The first 2 outputs are encoded via the
+				// header code, so adjust the output number
+				// accordingly.
+				outputNum := 2 + i*8 + j
+				outputIndexes = append(outputIndexes, outputNum)
+			}
+			unspentBits >>= 1
+		}
+		offset++
+	}
+
+	// Decode and add all of the utxos.
+	for i, outputIndex := range outputIndexes {
+		// Decode the next utxo.  The script and amount fields of the
+		// utxo output are left compressed so decompression can be
+		// avoided on those that are not accessed.  This is done since
+		// it is quite common for a redeeming transaction to only
+		// reference a single utxo from a referenced transaction.
+		compAmount, compScript, bytesRead, err := decodeCompressedTxOut(
+			serialized[offset:], int32(version))
+		if err != nil {
+			return nil, errDeserialize(fmt.Sprintf("unable to "+
+				"decode utxo at index %d: %v", i, err))
+		}
+		offset += bytesRead
+
+		entry.SparseOutputs[outputIndex] = &UtxoOutput{
+			Spent:      false,
+			compressed: true,
+			PkScript:   compScript,
+			Amount:     int64(compAmount),
 		}
 	}
 

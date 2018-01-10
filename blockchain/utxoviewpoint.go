@@ -13,7 +13,7 @@ import (
 	"github.com/btcsuite/btcutil"
 )
 
-// utxoOutput houses details about an individual unspent transaction output such
+// UtxoOutput houses details about an individual unspent transaction output such
 // as whether or not it is spent, its public key script, and how much it pays.
 //
 // Standard public key scripts are stored in the database using a compressed
@@ -26,23 +26,23 @@ import (
 // output is not uncompressed until the first time it is accessed.  This
 // provides a mechanism to avoid the overhead of needlessly uncompressing all
 // outputs for a given utxo entry at the time of load.
-type utxoOutput struct {
-	spent      bool   // Output is spent.
+type UtxoOutput struct {
+	Spent      bool   // Output is spent.
 	compressed bool   // The amount and public key script are compressed.
-	amount     int64  // The amount of the output.
-	pkScript   []byte // The public key script for the output.
+	Amount     int64  // The amount of the output.
+	PkScript   []byte // The public key script for the output.
 }
 
 // maybeDecompress decompresses the amount and public key script fields of the
 // utxo and marks it decompressed if needed.
-func (o *utxoOutput) maybeDecompress(version int32) {
+func (o *UtxoOutput) maybeDecompress(version int32) {
 	// Nothing to do if it's not compressed.
 	if !o.compressed {
 		return
 	}
 
-	o.amount = int64(decompressTxOutAmount(uint64(o.amount)))
-	o.pkScript = decompressScript(o.pkScript, version)
+	o.Amount = int64(decompressTxOutAmount(uint64(o.Amount)))
+	o.PkScript = decompressScript(o.PkScript, version)
 	o.compressed = false
 }
 
@@ -54,7 +54,7 @@ type UtxoEntry struct {
 	version       int32                  // The version of this tx.
 	isCoinBase    bool                   // Whether entry is a coinbase tx.
 	blockHeight   int32                  // Height of block containing tx.
-	sparseOutputs map[uint32]*utxoOutput // Sparse map of unspent outputs.
+	SparseOutputs map[uint32]*UtxoOutput // Sparse map of unspent outputs.
 }
 
 // Version returns the version of the transaction the utxo represents.
@@ -82,37 +82,37 @@ func (entry *UtxoEntry) BlockHeight() int32 {
 // either due to it being invalid or because the output is not part of the view
 // due to previously being spent/pruned.
 func (entry *UtxoEntry) IsOutputSpent(outputIndex uint32) bool {
-	output, ok := entry.sparseOutputs[outputIndex]
+	output, ok := entry.SparseOutputs[outputIndex]
 	if !ok {
 		return true
 	}
 
-	return output.spent
+	return output.Spent
 }
 
 // SpendOutput marks the output at the provided index as spent.  Specifying an
 // output index that does not exist will not have any effect.
 func (entry *UtxoEntry) SpendOutput(outputIndex uint32) {
-	output, ok := entry.sparseOutputs[outputIndex]
+	output, ok := entry.SparseOutputs[outputIndex]
 	if !ok {
 		return
 	}
 
 	// Nothing to do if the output is already spent.
-	if output.spent {
+	if output.Spent {
 		return
 	}
 
 	entry.modified = true
-	output.spent = true
+	output.Spent = true
 }
 
 // IsFullySpent returns whether or not the transaction the utxo entry represents
 // is fully spent.
 func (entry *UtxoEntry) IsFullySpent() bool {
 	// The entry is not fully spent if any of the outputs are unspent.
-	for _, output := range entry.sparseOutputs {
-		if !output.spent {
+	for _, output := range entry.SparseOutputs {
+		if !output.Spent {
 			return false
 		}
 	}
@@ -126,14 +126,14 @@ func (entry *UtxoEntry) IsFullySpent() bool {
 // either due to it being invalid or because the output is not part of the view
 // due to previously being spent/pruned.
 func (entry *UtxoEntry) AmountByIndex(outputIndex uint32) int64 {
-	output, ok := entry.sparseOutputs[outputIndex]
+	output, ok := entry.SparseOutputs[outputIndex]
 	if !ok {
 		return 0
 	}
 
 	// Ensure the output is decompressed before returning the amount.
 	output.maybeDecompress(entry.version)
-	return output.amount
+	return output.Amount
 }
 
 // PkScriptByIndex returns the public key script for the provided output index.
@@ -142,14 +142,14 @@ func (entry *UtxoEntry) AmountByIndex(outputIndex uint32) int64 {
 // either due to it being invalid or because the output is not part of the view
 // due to previously being spent/pruned.
 func (entry *UtxoEntry) PkScriptByIndex(outputIndex uint32) []byte {
-	output, ok := entry.sparseOutputs[outputIndex]
+	output, ok := entry.SparseOutputs[outputIndex]
 	if !ok {
 		return nil
 	}
 
 	// Ensure the output is decompressed before returning the script.
 	output.maybeDecompress(entry.version)
-	return output.pkScript
+	return output.PkScript
 }
 
 // Clone returns a deep copy of the utxo entry.
@@ -162,14 +162,14 @@ func (entry *UtxoEntry) Clone() *UtxoEntry {
 		version:       entry.version,
 		isCoinBase:    entry.isCoinBase,
 		blockHeight:   entry.blockHeight,
-		sparseOutputs: make(map[uint32]*utxoOutput),
+		SparseOutputs: make(map[uint32]*UtxoOutput),
 	}
-	for outputIndex, output := range entry.sparseOutputs {
-		newEntry.sparseOutputs[outputIndex] = &utxoOutput{
-			spent:      output.spent,
+	for outputIndex, output := range entry.SparseOutputs {
+		newEntry.SparseOutputs[outputIndex] = &UtxoOutput{
+			Spent:      output.Spent,
 			compressed: output.compressed,
-			amount:     output.amount,
-			pkScript:   output.pkScript,
+			Amount:     output.Amount,
+			PkScript:   output.PkScript,
 		}
 	}
 	return newEntry
@@ -182,7 +182,7 @@ func newUtxoEntry(version int32, isCoinBase bool, blockHeight int32) *UtxoEntry 
 		version:       version,
 		isCoinBase:    isCoinBase,
 		blockHeight:   blockHeight,
-		sparseOutputs: make(map[uint32]*utxoOutput),
+		SparseOutputs: make(map[uint32]*UtxoOutput),
 	}
 }
 
@@ -252,20 +252,20 @@ func (view *UtxoViewpoint) AddTxOuts(tx *btcutil.Tx, blockHeight int32) {
 		// entry is being replaced by a different transaction with the
 		// same hash.  This is allowed so long as the previous
 		// transaction is fully spent.
-		if output, ok := entry.sparseOutputs[uint32(txOutIdx)]; ok {
-			output.spent = false
+		if output, ok := entry.SparseOutputs[uint32(txOutIdx)]; ok {
+			output.Spent = false
 			output.compressed = false
-			output.amount = txOut.Value
-			output.pkScript = txOut.PkScript
+			output.Amount = txOut.Value
+			output.PkScript = txOut.PkScript
 			continue
 		}
 
 		// Add the unspent transaction output.
-		entry.sparseOutputs[uint32(txOutIdx)] = &utxoOutput{
-			spent:      false,
+		entry.SparseOutputs[uint32(txOutIdx)] = &UtxoOutput{
+			Spent:      false,
 			compressed: false,
-			amount:     txOut.Value,
-			pkScript:   txOut.PkScript,
+			Amount:     txOut.Value,
+			PkScript:   txOut.PkScript,
 		}
 	}
 }
@@ -377,7 +377,7 @@ func (view *UtxoViewpoint) disconnectTransactions(block *btcutil.Block, stxos []
 			view.entries[*tx.Hash()] = entry
 		}
 		entry.modified = true
-		entry.sparseOutputs = make(map[uint32]*utxoOutput)
+		entry.SparseOutputs = make(map[uint32]*UtxoOutput)
 
 		// Loop backwards through all of the transaction inputs (except
 		// for the coinbase which has no inputs) and unspend the
@@ -412,21 +412,21 @@ func (view *UtxoViewpoint) disconnectTransactions(block *btcutil.Block, stxos []
 			// Restore the specific utxo using the stxo data from
 			// the spend journal if it doesn't already exist in the
 			// view.
-			output, ok := entry.sparseOutputs[originIndex]
+			output, ok := entry.SparseOutputs[originIndex]
 			if !ok {
 				// Add the unspent transaction output.
-				entry.sparseOutputs[originIndex] = &utxoOutput{
-					spent:      false,
+				entry.SparseOutputs[originIndex] = &UtxoOutput{
+					Spent:      false,
 					compressed: stxo.compressed,
-					amount:     stxo.amount,
-					pkScript:   stxo.pkScript,
+					Amount:     stxo.amount,
+					PkScript:   stxo.pkScript,
 				}
 				continue
 			}
 
 			// Mark the existing referenced transaction output as
 			// unspent.
-			output.spent = false
+			output.Spent = false
 		}
 	}
 
