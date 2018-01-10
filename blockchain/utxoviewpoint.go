@@ -33,9 +33,9 @@ type UtxoOutput struct {
 	PkScript   []byte // The public key script for the output.
 }
 
-// maybeDecompress decompresses the amount and public key script fields of the
+// MaybeDecompress decompresses the amount and public key script fields of the
 // utxo and marks it decompressed if needed.
-func (o *UtxoOutput) maybeDecompress(version int32) {
+func (o *UtxoOutput) MaybeDecompress(version int32) {
 	// Nothing to do if it's not compressed.
 	if !o.compressed {
 		return
@@ -132,7 +132,7 @@ func (entry *UtxoEntry) AmountByIndex(outputIndex uint32) int64 {
 	}
 
 	// Ensure the output is decompressed before returning the amount.
-	output.maybeDecompress(entry.version)
+	output.MaybeDecompress(entry.version)
 	return output.Amount
 }
 
@@ -148,7 +148,7 @@ func (entry *UtxoEntry) PkScriptByIndex(outputIndex uint32) []byte {
 	}
 
 	// Ensure the output is decompressed before returning the script.
-	output.maybeDecompress(entry.version)
+	output.MaybeDecompress(entry.version)
 	return output.PkScript
 }
 
