@@ -238,7 +238,7 @@ func loadUtxoView(filename string) (*UtxoViewpoint, error) {
 		}
 
 		// Deserialize it and add it to the view.
-		utxoEntry, err := deserializeUtxoEntry(serialized)
+		utxoEntry, err := DeserializeUtxoEntry(serialized)
 		if err != nil {
 			return nil, err
 		}

@@ -726,7 +726,7 @@ func TestUtxoSerialization(t *testing.T) {
 		}
 
 		// Deserialize to a utxo entry.
-		utxoEntry, err := deserializeUtxoEntry(test.serialized)
+		utxoEntry, err := DeserializeUtxoEntry(test.serialized)
 		if err != nil {
 			t.Errorf("deserializeUtxoEntry #%d (%s) unexpected "+
 				"error: %v", i, test.name, err)
@@ -900,7 +900,7 @@ func TestUtxoEntryDeserializeErrors(t *testing.T) {
 	for _, test := range tests {
 		// Ensure the expected error type is returned and the returned
 		// entry is nil.
-		entry, err := deserializeUtxoEntry(test.serialized)
+		entry, err := DeserializeUtxoEntry(test.serialized)
 		if reflect.TypeOf(err) != reflect.TypeOf(test.errType) {
 			t.Errorf("deserializeUtxoEntry (%s): expected error "+
 				"type does not match - got %T, want %T",
